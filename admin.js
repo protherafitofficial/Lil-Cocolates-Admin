@@ -146,7 +146,7 @@ adminSearchInput.addEventListener("input", (e) => {
 ───────────────────────────── */
 
 const INSTAGRAM_LINK = "https://instagram.com/lil.cocolates";
-const CATALOGUE_LINK = "https://PASTE_YOUR_WEBSITE_LINK_HERE";
+const CATALOGUE_LINK = "https://lil-cocolates.vercel.app/";
 
 // Emoji + special characters as escape codes — this makes the message
 // immune to any encoding corruption from servers, editors, or copy-paste,
