@@ -12,7 +12,8 @@ import {
   onSnapshot,
   doc,
   updateDoc,
-  deleteDoc
+  deleteDoc,
+  setDoc
 } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js";
 import {
   getAuth,
@@ -50,6 +51,7 @@ window.firebaseUtils = {
   doc,
   updateDoc,
   deleteDoc,
+  setDoc,
   signInWithEmailAndPassword,
   onAuthStateChanged,
   signOut
