@@ -114,7 +114,7 @@ function renderStats() {
   }).length;
 
   const revenue = allOrders
-    .filter(o => ["Confirmed", "Preparing", "Delivered"].includes(o.status))
+    .filter(o => ["Confirmed", "Preparing", "Dispatched"].includes(o.status))
     .reduce((sum, o) => sum + (Number(o.amount) || 0), 0);
 
   document.getElementById("statTotal").textContent = total;
@@ -159,6 +159,8 @@ const PACKAGE    = "\u{1F4E6}"; // 📦
 const CAMERA     = "\u{1F4F8}"; // 📸
 const CHOCOLATE  = "\u{1F36B}"; // 🍫
 const TWOHEARTS  = "\u{1F495}"; // 💕
+const DIAMOND    = "\u{1F48E}"; // 💎
+const VICTORY    = "\u{270C}\u{1F3FB}"; // ✌🏻
 const RSQUOTE    = "\u{2019}";  // ’
 const EMDASH     = "\u{2014}";  // —
 const ENDASH     = "\u{2013}";  // –
@@ -168,7 +170,7 @@ const RUPEE      = "\u{20B9}";  // ₹
 // Shared closing line used by both Confirmed and Preparing messages
 // (kept as its own piece so it's typed once, not duplicated)
 function contactFooter() {
-  return `If you have any questions or need any clarification, please feel free to reach out to Lil' Cocolates at 93630 31787. We${RSQUOTE}re always happy to assist you! ${TWOHEARTS}${CHOCOLATE}`;
+  return `If you have any questions or need any clarification, please feel free to reach out to Lil' Cocolates at 93630 31787. We${RSQUOTE}re always happy to assist you! ${VICTORY}${CHOCOLATE}`;
 }
 
 function buildConfirmationMessage(order) {
@@ -184,7 +186,7 @@ We${RSQUOTE}re delighted to have your order with us. It will now be carefully pr
 
 Thank you for choosing Lil${RSQUOTE} Cocolates. ${HEART}
 
-Crafted for memories, by memories.
+Crafted for memories, by memories. ${DIAMOND}
 
 ${contactFooter()}`;
 }
@@ -203,12 +205,12 @@ Every detail is thoughtfully taken care of, ensuring it reaches you just as it s
 We${RSQUOTE}ll keep you updated when your order begins its journey. ${PACKAGE}
 
 Lil${RSQUOTE} Cocolates
-Crafted for memories, by memories. ${HEART}
+Crafted for memories, by memories. ${DIAMOND}
 
 ${contactFooter()}`;
 }
 
-function buildDeliveredMessage(order) {
+function buildDispatchedMessage(order) {
   return `ORDER ON THE WAY ${GIFT}${SPARKLES}
 
 Hi ${order.customerName}! ${HEART}
@@ -223,7 +225,7 @@ Loved your experience with Lil${RSQUOTE} Cocolates?
 
 ${CAMERA} Share your Lil${RSQUOTE} Cocolates moment with us: ${INSTAGRAM_LINK}
 
-Crafted for memories, by memories. ${HEART}
+Crafted for memories, by memories. ${DIAMOND}
 
 ${DIVIDER}
 
@@ -248,15 +250,29 @@ ${DIVIDER}
 Until the next one. ${HEART}
 
 Lil${RSQUOTE} Cocolates
-Crafted for memories, by memories.`;
+Crafted for memories, by memories. ${DIAMOND}`;
+}
+
+// ⚠️ Draft wording — edit this to match your exact tone before going live
+function buildRejectedMessage(order) {
+  return `ORDER UPDATE
+
+Hi ${order.customerName},
+
+We${RSQUOTE}re really sorry, but we weren${RSQUOTE}t able to confirm your order ${order.orderId} at this time ${EMDASH} this is usually due to a payment verification issue.
+
+Please reach out to us at 93630 31787 and we${RSQUOTE}ll sort this out together. ${HEART}
+
+Lil${RSQUOTE} Cocolates`;
 }
 
 // One entry per status that should trigger an automatic WhatsApp message.
-// Statuses NOT listed here (Pending Verification, Rejected) never send anything.
+// Statuses NOT listed here (Pending Verification) never send anything.
 const WHATSAPP_MESSAGE_BUILDERS = {
   "Confirmed": buildConfirmationMessage,
   "Preparing": buildPreparingMessage,
-  "Delivered": buildDeliveredMessage
+  "Dispatched": buildDispatchedMessage,
+  "Rejected": buildRejectedMessage
 };
 
 // Cleans whatever format the customer typed (spaces, dashes, +91, leading 0...)
@@ -347,7 +363,7 @@ const STATUS_CLASS = {
   "Pending Verification": "status-pending",
   "Confirmed": "status-confirmed",
   "Preparing": "status-preparing",
-  "Delivered": "status-delivered",
+  "Dispatched": "status-delivered",
   "Rejected": "status-rejected"
 };
 
@@ -355,7 +371,7 @@ const STATUS_ACCENT = {
   "Pending Verification": "card-status-pending",
   "Confirmed": "card-status-confirmed",
   "Preparing": "card-status-preparing",
-  "Delivered": "card-status-delivered",
+  "Dispatched": "card-status-delivered",
   "Rejected": "card-status-rejected"
 };
 
@@ -436,7 +452,7 @@ function renderOrders() {
             <div class="admin-status-option ${order.status === "Pending Verification" ? "active" : ""}" data-value="Pending Verification">Pending Verification</div>
             <div class="admin-status-option ${order.status === "Confirmed" ? "active" : ""}" data-value="Confirmed">Confirmed</div>
             <div class="admin-status-option ${order.status === "Preparing" ? "active" : ""}" data-value="Preparing">Preparing</div>
-            <div class="admin-status-option ${order.status === "Delivered" ? "active" : ""}" data-value="Delivered">Delivered</div>
+            <div class="admin-status-option ${order.status === "Dispatched" ? "active" : ""}" data-value="Dispatched">Dispatched</div>
             <div class="admin-status-option ${order.status === "Rejected" ? "active" : ""}" data-value="Rejected">Rejected</div>
           </div>
         </div>
