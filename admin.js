@@ -412,6 +412,8 @@ function renderOrders() {
       customizationHtml = `<span class="admin-order-custom">🎂 ${order.nameplateDesign}</span>`;
     } else if (order.roseColour) {
       customizationHtml = `<span class="admin-order-custom">🌹 ${order.roseColour}</span>`;
+    } else if (order.nutChoice) {
+      customizationHtml = `<span class="admin-order-custom">🌰 ${order.nutChoice}</span>`;
     }
 
     card.innerHTML = `
