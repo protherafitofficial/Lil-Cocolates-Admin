@@ -28,7 +28,11 @@ const PRODUCT_LIST = [
   { id: "valentine|Gift box|Signature box", name: "Signature box", category: "Valentine's special", group: "Gift box" }
 ];
 
+// Rose colours shown in the order form for Valentine's Special items
+const ROSE_LIST = ["Red rose", "Baby Pink rose", "Blue rose", "White rose"];
+
 let productAvailability = {}; // id → true/false, loaded from Firestore
+let roseAvailability = {};    // rose name → true/false, loaded from Firestore
 
 function waitForFirebase() {
   return new Promise((resolve) => {
@@ -52,17 +56,27 @@ waitForFirebase().then(() => {
     document.getElementById("productsPageWrap").style.display = "block";
 
     const db = window.firebaseDb;
-    onSnapshot(collection(db, "productAvailability"), (snapshot) => {
+      onSnapshot(collection(db, "productAvailability"), (snapshot) => {
       productAvailability = {};
       snapshot.forEach(docSnap => {
         productAvailability[docSnap.id] = docSnap.data().available;
       });
       renderProducts();
-    }, (err) => {
-      console.error("Products failed to load:", err);
-      document.getElementById("productsListContainer").innerHTML =
-        "<p style='color:#B3261E'>Could not load products. Check Firestore rules.</p>";
-    });
+      }, (err) => {
+        console.error("Products failed to load:", err);
+        document.getElementById("productsListContainer").innerHTML =
+          "<p style='color:#B3261E'>Could not load products. Check Firestore rules.</p>";
+      });
+
+      onSnapshot(collection(db, "roseAvailability"), (snapshot) => {
+        roseAvailability = {};
+        snapshot.forEach(docSnap => {
+          roseAvailability[docSnap.id] = docSnap.data().available;
+        });
+        renderProducts();
+      }, (err) => {
+        console.error("Rose availability failed to load:", err);
+      });
   });
 });
 
@@ -100,10 +114,31 @@ function renderProducts() {
         ${rows}
       </div>
     `;
-  }).join("");
+    }).join("");
 
-  // Wire up toggle switches → write straight to Firestore
-  container.querySelectorAll(".availability-toggle input").forEach(checkbox => {
+  // Append the Rose Colours section (used by all Valentine's Special items)
+  container.innerHTML += `
+    <div class="products-category-block">
+      <div class="products-category-title">Rose Colours (Valentine's Special)</div>
+      ${ROSE_LIST.map(rose => {
+        const isAvailable = roseAvailability[rose] !== false;
+        return `
+          <div class="product-row">
+            <div>
+              <div class="product-row-name">${rose}</div>
+            </div>
+            <label class="availability-toggle">
+              <input type="checkbox" data-rose-id="${rose}" ${isAvailable ? "checked" : ""}>
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+        `;
+      }).join("")}
+    </div>
+  `;
+
+  // Wire up PRODUCT toggle switches → write straight to Firestore
+  container.querySelectorAll(".availability-toggle input[data-product-id]").forEach(checkbox => {
     checkbox.addEventListener("change", async (e) => {
       const { doc, setDoc } = window.firebaseUtils;
       const db = window.firebaseDb;
@@ -116,7 +151,28 @@ function renderProducts() {
       } catch (err) {
         console.error("Failed to update availability:", err);
         alert("Could not update this product. Please try again.");
-        e.target.checked = !newValue; // revert the toggle visually
+        e.target.checked = !newValue;
+      } finally {
+        e.target.disabled = false;
+      }
+    });
+  });
+
+  // Wire up ROSE toggle switches → write straight to Firestore
+  container.querySelectorAll(".availability-toggle input[data-rose-id]").forEach(checkbox => {
+    checkbox.addEventListener("change", async (e) => {
+      const { doc, setDoc } = window.firebaseUtils;
+      const db = window.firebaseDb;
+      const roseId = e.target.dataset.roseId;
+      const newValue = e.target.checked;
+
+      e.target.disabled = true;
+      try {
+        await setDoc(doc(db, "roseAvailability", roseId), { available: newValue }, { merge: true });
+      } catch (err) {
+        console.error("Failed to update rose availability:", err);
+        alert("Could not update this rose colour. Please try again.");
+        e.target.checked = !newValue;
       } finally {
         e.target.disabled = false;
       }
