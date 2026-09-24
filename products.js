@@ -31,8 +31,28 @@ const PRODUCT_LIST = [
 // Rose colours shown in the order form for Valentine's Special items
 const ROSE_LIST = ["Red rose", "Baby Pink rose", "Blue rose", "White rose"];
 
+// Nut choices shown in the order form for Regulars → Nut collection items
+// ⚠️ Must match NUT_CHOICES in the customer site's script.js (same spelling)
+const NUT_LIST = [
+  "Almond",
+  "Walnut",
+  "Hazelnut",
+  "Cashew",
+  "Almond + Walnut",
+  "Almond + Hazelnut",
+  "Almond + Cashew",
+  "Walnut + Hazelnut",
+  "Walnut + Cashew",
+  "Hazelnut + Cashew",
+  "Almond + Walnut + Hazelnut",
+  "Almond + Walnut + Cashew",
+  "Walnut + Hazelnut + Cashew",
+  "Almond + Walnut + Hazelnut + Cashew"
+];
+
 let productAvailability = {}; // id → true/false, loaded from Firestore
 let roseAvailability = {};    // rose name → true/false, loaded from Firestore
+let nutAvailability = {};     // nut choice → true/false, loaded from Firestore
 
 function waitForFirebase() {
   return new Promise((resolve) => {
@@ -76,6 +96,16 @@ waitForFirebase().then(() => {
         renderProducts();
       }, (err) => {
         console.error("Rose availability failed to load:", err);
+      });
+      
+      onSnapshot(collection(db, "nutAvailability"), (snapshot) => {
+        nutAvailability = {};
+        snapshot.forEach(docSnap => {
+          nutAvailability[docSnap.id] = docSnap.data().available;
+        });
+        renderProducts();
+      }, (err) => {
+        console.error("Nut availability failed to load:", err);
       });
   });
 });
@@ -137,6 +167,27 @@ function renderProducts() {
     </div>
   `;
 
+  // Append the Nut Choices section (used by Regulars → Nut collection items)
+  container.innerHTML += `
+    <div class="products-category-block">
+      <div class="products-category-title">Nut Choices (Regulars — Nut collection)</div>
+      ${NUT_LIST.map(nut => {
+        const isAvailable = nutAvailability[nut] !== false;
+        return `
+          <div class="product-row">
+            <div>
+              <div class="product-row-name">${nut}</div>
+            </div>
+            <label class="availability-toggle">
+              <input type="checkbox" data-nut-id="${nut}" ${isAvailable ? "checked" : ""}>
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+        `;
+      }).join("")}
+    </div>
+  `;
+
   // Wire up PRODUCT toggle switches → write straight to Firestore
   container.querySelectorAll(".availability-toggle input[data-product-id]").forEach(checkbox => {
     checkbox.addEventListener("change", async (e) => {
@@ -172,6 +223,27 @@ function renderProducts() {
       } catch (err) {
         console.error("Failed to update rose availability:", err);
         alert("Could not update this rose colour. Please try again.");
+        e.target.checked = !newValue;
+      } finally {
+        e.target.disabled = false;
+      }
+    });
+  });
+  
+  // Wire up NUT toggle switches → write straight to Firestore
+  container.querySelectorAll(".availability-toggle input[data-nut-id]").forEach(checkbox => {
+    checkbox.addEventListener("change", async (e) => {
+      const { doc, setDoc } = window.firebaseUtils;
+      const db = window.firebaseDb;
+      const nutId = e.target.dataset.nutId;
+      const newValue = e.target.checked;
+
+      e.target.disabled = true;
+      try {
+        await setDoc(doc(db, "nutAvailability", nutId), { available: newValue }, { merge: true });
+      } catch (err) {
+        console.error("Failed to update nut availability:", err);
+        alert("Could not update this nut choice. Please try again.");
         e.target.checked = !newValue;
       } finally {
         e.target.disabled = false;
