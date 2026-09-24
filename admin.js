@@ -409,11 +409,13 @@ function renderOrders() {
 
     let customizationHtml = "";
     if (order.nameplateDesign) {
-      customizationHtml = `<span class="admin-order-custom">🎂 ${order.nameplateDesign}</span>`;
-    } else if (order.roseColour) {
-      customizationHtml = `<span class="admin-order-custom">🌹 ${order.roseColour}</span>`;
-    } else if (order.nutChoice) {
-      customizationHtml = `<span class="admin-order-custom">🌰 ${order.nutChoice}</span>`;
+      customizationHtml += `<span class="admin-order-custom">🎂 ${order.nameplateDesign}</span> `;
+    }
+    if (order.roseColour) {
+      customizationHtml += `<span class="admin-order-custom">🌹 ${order.roseColour}</span> `;
+    }
+    if (order.nutChoice) {
+      customizationHtml += `<span class="admin-order-custom">🌰 ${order.nutChoice}</span>`;
     }
 
     card.innerHTML = `
